@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Emotion Detector</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 25px;
+      color: #333;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      padding: 12px;
+      font-size: 1.1rem;
+      resize: none;
+      transition: border-color 0.3s;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+    }
+    button {
+      margin-top: 20px;
+      background-color: #007bff;
+      color: white;
+      font-weight: 600;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      margin-top: 25px;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    .loading {
+      margin-top: 20px;
+      font-size: 1rem;
+      color: #666;
+      display: none;
+    }
+    .emoji {
+      font-size: 2rem;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Emotion Detector</h1>
+    <textarea id="text-input" placeholder="Type your text here..."></textarea>
+    <button id="detect-btn">Detect Emotion</button>
+    <div class="loading" id="loading">Analyzing emotion...</div>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const detectBtn = document.getElementById('detect-btn');
+    const textInput = document.getElementById('text-input');
+    const resultDiv = document.getElementById('result');
+    const loadingDiv = document.getElementById('loading');
+
+    const emojiMap = {
+      angry: '😠',
+      frustrated: '😤',
+      happy: '😊',
+      sad: '😢',
+      neutral: '😐'
+    };
+
+    detectBtn.addEventListener('click', async () => {
+      const text = textInput.value.trim();
+      if (!text) {
+        resultDiv.textContent = 'Please enter some text!';
+        return;
+      }
+
+      resultDiv.textContent = '';
+      loadingDiv.style.display = 'block';
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const data = await response.json();
+
+        loadingDiv.style.display = 'none';
+
+        if (data.error) {
+          resultDiv.textContent = data.error;
+          return;
+        }
+
+        const emotion = data.prediction;
+        const emoji = emojiMap[emotion] || '';
+        resultDiv.innerHTML = `Detected Emotion: <span>${emotion.toUpperCase()}</span> <span class="emoji">${emoji}</span>`;
+      } catch (error) {
+        loadingDiv.style.display = 'none';
+        resultDiv.textContent = 'Something went wrong. Please try again!';
+      }
+    });
+  </script>
+</body>
+</html>
